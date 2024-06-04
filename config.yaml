@@ -1,0 +1,17 @@
+target:
+  region: ap-northeast-1
+  db_parameter_group_name: some_db_parameter_group_name
+
+export:
+  # Files will be exported in outputs/ directory.
+  #
+  # The default filename is:
+  #   <db_parameter_group_name>.<timestamp>.<ext>
+  #
+  # If you don't like this and want to specify a basename,
+  # please uncomment 'basename' parameter below and specify the basename for it.
+  #
+  # The new filename will be:
+  #   <basename>.<ext>
+
+  # basename: some_db_parameter_group_name
