@@ -1,3 +1,6 @@
+require "singleton"
+require "yaml"
+
 class Config
   attr_reader :region, :db_parameter_group_name, :exported_file_basename
 

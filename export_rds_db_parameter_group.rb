@@ -1,7 +1,4 @@
 require "aws-sdk-rds"
-require "singleton"
-require "time"
-require "yaml"
 
 require_relative "lib/config"
 require_relative "lib/exporter"
