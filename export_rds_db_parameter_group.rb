@@ -23,7 +23,7 @@ puts ""
 puts "  #{config.db_parameter_group_name} (#{config.region})"
 puts ""
 
-# Fetch the DB parameter group
+# Fetch all the DB parameters of the RDS DB parameter group
 begin
   all_db_parameters = rds_client
                         .describe_db_parameters(
@@ -32,12 +32,13 @@ begin
                         .map { |response| response.parameters }
                         .flatten
 rescue Aws::RDS::Errors::DBParameterGroupNotFound, Aws::RDS::Errors::InvalidParameterValue => e
-  puts "There is no DB parameter group '#{config.db_parameter_group_name}'" +
+  puts "There is no RDS DB parameter group '#{config.db_parameter_group_name}'" +
        " (region: #{config.region})."
 
   abort "Program aborted."
 rescue => e
-  puts "An error occured with fetching DB parameter group '#{config.db_parameter_group_name}'."
+  puts "An error occured with fetching parameters" +
+       " from RDS DB parameter group '#{config.db_parameter_group_name}'."
 
   raise e
 end
@@ -85,7 +86,7 @@ begin
   puts "  #{exported_filepath}"
   puts ""
 rescue Aws::RDS::Errors::DBParameterGroupNotFound, Aws::RDS::Errors::InvalidParameterValue => e
-  puts "There is no DB parameter group '#{config.db_parameter_group_name}'" +
+  puts "There is no RDS DB parameter group '#{config.db_parameter_group_name}'" +
        " (region: #{config.region})."
 
   abort "Program aborted."
