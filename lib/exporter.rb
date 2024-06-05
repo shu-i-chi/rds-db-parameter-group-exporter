@@ -38,11 +38,9 @@ class Exporter
   def export(basename = nil)
     now = Time.now.localtime("+09:00")
 
-    if basename
-      filepath = "#{EXPORT_DIR}/#{basename}#{self.extname}"
-    else
-      filepath = self.default_filepath(time: now)
-    end
+    basename ||= self.default_basename(time: now)
+
+    filepath = self.filepath(basename: basename)
 
     File.open(filepath, "w") do |file|
       output_header_comment(file: file, time: now)
@@ -81,11 +79,14 @@ class Exporter
                       end
   end
 
-  def default_filepath(time:)
-    timestamp = time.strftime("%Y%m%d-%H%M%S")
-    basename = "#{db_parameter_group_name}.#{timestamp}"
-
+  def filepath(basename:)
     "#{EXPORT_DIR}/#{basename}#{self.extname}"
+  end
+
+  def default_basename(time:)
+    timestamp = time.strftime("%Y%m%d-%H%M%S")
+
+    "#{db_parameter_group_name}.#{timestamp}"
   end
 
   def output_header_comment(file:, time:)
