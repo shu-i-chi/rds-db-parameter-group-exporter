@@ -18,17 +18,19 @@ end
 # Start
 rds_client = Aws::RDS::Client.new(region: config.region)
 
-puts "Start to export the RDS DB parameter group '#{config.db_parameter_group_name}'."
+puts "Start to export the RDS DB parameter group:"
+puts ""
+puts "  #{config.db_parameter_group_name} (#{config.region})"
+puts ""
 
 # Fetch the DB parameter group
 begin
-  describe_db_parameter_groups_response = rds_client.describe_db_parameter_groups(
-    {:db_parameter_group_name => config.db_parameter_group_name}
-  )
-
-  describe_db_parameters_response = rds_client.describe_db_parameters(
-    {:db_parameter_group_name => config.db_parameter_group_name}
-  )
+  all_db_parameters = rds_client
+                        .describe_db_parameters(
+                          {:db_parameter_group_name => config.db_parameter_group_name}
+                        )
+                        .map { |response| response.parameters }
+                        .flatten
 rescue Aws::RDS::Errors::DBParameterGroupNotFound, Aws::RDS::Errors::InvalidParameterValue => e
   puts "There is no DB parameter group '#{config.db_parameter_group_name}'" +
        " (region: #{config.region})."
@@ -44,20 +46,26 @@ end
 system_modified_db_parameters = []
 user_modified_db_parameters = []
 
-describe_db_parameters_response.parameters.each do |db_parameter|
-  case db_parameter.source
-  when "system"
-    system_modified_db_parameters << db_parameter
-  when "user"
-    user_modified_db_parameters << db_parameter
+all_db_parameters
+  .reject { |db_parameter| db_parameter.parameter_value.nil? }
+  .each do |db_parameter|
+    case db_parameter.source
+    when "system"
+      system_modified_db_parameters << db_parameter
+    when "user"
+      user_modified_db_parameters << db_parameter
+    end
   end
-end
 
 # Output
-db_parameter_group_family = describe_db_parameter_groups_response.db_parameter_groups.first
-                              .db_parameter_group_family
-
 begin
+  describe_db_parameter_groups_response = rds_client.describe_db_parameter_groups(
+    {:db_parameter_group_name => config.db_parameter_group_name}
+  )
+
+  db_parameter_group_family = describe_db_parameter_groups_response.db_parameter_groups.first
+                                .db_parameter_group_family
+
   exporter = Exporter.new(
     db_parameter_group_name: config.db_parameter_group_name,
     db_parameter_group_family: db_parameter_group_family,
@@ -72,7 +80,15 @@ begin
                         exporter.export
                       end
 
-  puts "Successfully exported '#{exported_filepath}'."
+  puts "Successfully exported:"
+  puts ""
+  puts "  #{exported_filepath}"
+  puts ""
+rescue Aws::RDS::Errors::DBParameterGroupNotFound, Aws::RDS::Errors::InvalidParameterValue => e
+  puts "There is no DB parameter group '#{config.db_parameter_group_name}'" +
+       " (region: #{config.region})."
+
+  abort "Program aborted."
 rescue Exporter::NotCompatibleDBParameterGroupFamilyError => e
   puts e.message
 

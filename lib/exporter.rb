@@ -55,8 +55,8 @@ class Exporter
         # The parameters which specified by default DB parameter group
         output_parameters_as_ini(
           file: file,
-          comment: "The parameters which specified by default DB parameter group " +
-          "(Source: System default)",
+          comment: "The parameters which specified by default DB parameter group" +
+                   " (Source: System default)",
           db_parameters: self.system_modified_db_parameters
         )
 
@@ -102,6 +102,7 @@ class Exporter
   def output_parameters_as_ini(file:, comment:, db_parameters:)
     file.puts "#"
     file.puts "# #{comment}"
+    file.puts "# (#{db_parameters.size} items)"
     file.puts "#"
     file.puts ""
 
